@@ -10,6 +10,7 @@ function App() {
   })
 
   const intervalRef = useRef(null)
+  const recognitionRef = useRef(null)
 
   const startTimer = () => {
     setRunning(true)
@@ -27,10 +28,13 @@ function App() {
   const stopTimer = () => {
     clearInterval(intervalRef.current)
     setRunning(false)
+    recognitionRef.current?.stop()
+    window.speechSynthesis.cancel()
     const entry = { date: new Date().toLocaleString(), duration: seconds }
     const updated = [entry, ...history]
     setHistory(updated)
     localStorage.setItem('history', JSON.stringify(updated))
+    localStorage.setItem('lastDuration', String(seconds))
     setSeconds(0)
   }
 
@@ -47,20 +51,23 @@ function App() {
     recognition.onresult = (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim().toLowerCase()
       if (transcript.includes('start') && !running) {
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance('Start'))
         startTimer()
       } else if (transcript.includes('stop') && running) {
         stopTimer()
-        recognition.stop()
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance('Stop'))
       }
     }
     recognition.onerror = (e) => console.error(e)
+    recognitionRef.current = recognition
     recognition.start()
   }
 
   return (
     <div>
       <h1>Exercise Timer</h1>
-      <button onClick={startRecognition}>Start Exercise</button>
+      <button onClick={startRecognition} disabled={running}>Start Exercise</button>
+      <button onClick={stopTimer} disabled={!running}>Stop</button>
       <div>Time: {seconds}s</div>
       <h2>History</h2>
       <ul>
