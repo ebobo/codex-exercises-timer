@@ -12,16 +12,20 @@ function App() {
   const intervalRef = useRef(null)
   const recognitionRef = useRef(null)
 
+  const speak = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text)
+    // make sure previous speech does not queue up
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(utterance)
+  }
+
   const startTimer = () => {
     setRunning(true)
     setSeconds(0)
-    // clear any queued speech before starting
-    window.speechSynthesis.cancel()
     intervalRef.current = setInterval(() => {
       setSeconds((prev) => {
         const next = prev + 1
-        const utterance = new SpeechSynthesisUtterance(String(next))
-        window.speechSynthesis.speak(utterance)
+        speak(String(next))
         return next
       })
     }, 1000)
@@ -52,12 +56,19 @@ function App() {
     recognition.interimResults = false
     recognition.onresult = (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim().toLowerCase()
+
+      // ignore digits that come from the spoken timer itself
+      const numberWords = [
+        'zero','one','two','three','four','five','six','seven','eight','nine','ten'
+      ]
+      if (/^\d+$/.test(transcript) || numberWords.includes(transcript)) return
+
       if (transcript.includes('start') && !running) {
-        window.speechSynthesis.speak(new SpeechSynthesisUtterance('Start'))
+        speak('Start')
         startTimer()
       } else if (transcript.includes('stop') && running) {
         stopTimer()
-        window.speechSynthesis.speak(new SpeechSynthesisUtterance('Stop'))
+        speak('Stop')
       }
     }
     recognition.onerror = (e) => console.error(e)
