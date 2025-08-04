@@ -15,11 +15,13 @@ function App() {
   const startTimer = () => {
     setRunning(true)
     setSeconds(0)
+    // clear any queued speech before starting
+    window.speechSynthesis.cancel()
     intervalRef.current = setInterval(() => {
       setSeconds((prev) => {
         const next = prev + 1
-        window.speechSynthesis.cancel()
-        window.speechSynthesis.speak(new SpeechSynthesisUtterance(String(next)))
+        const utterance = new SpeechSynthesisUtterance(String(next))
+        window.speechSynthesis.speak(utterance)
         return next
       })
     }, 1000)
