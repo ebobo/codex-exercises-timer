@@ -1,0 +1,15 @@
+{
+  "name": "Codex Exercise Timer",
+  "short_name": "ExerciseTimer",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "Voice-controlled exercise timer PWA",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
