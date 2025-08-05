@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './App.css'
 
 function App() {
@@ -11,9 +11,28 @@ function App() {
 
   const intervalRef = useRef(null)
   const recognitionRef = useRef(null)
+  const voiceRef = useRef(null)
+
+  // ensure voices are loaded before attempting to speak
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices()
+      if (voices.length > 0) {
+        voiceRef.current = voices[0]
+      }
+    }
+
+    // some browsers load voices asynchronously
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
+    loadVoices()
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
+    }
+  }, [])
 
   const speak = (text) => {
     const utterance = new SpeechSynthesisUtterance(text)
+    if (voiceRef.current) utterance.voice = voiceRef.current
     // make sure previous speech does not queue up
     window.speechSynthesis.cancel()
     window.speechSynthesis.speak(utterance)
