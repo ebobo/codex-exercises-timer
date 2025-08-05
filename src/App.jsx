@@ -12,6 +12,7 @@ function App() {
   const intervalRef = useRef(null)
   const recognitionRef = useRef(null)
   const voiceRef = useRef(null)
+  const runningRef = useRef(running)
 
   // ensure voices are loaded before attempting to speak
   useEffect(() => {
@@ -29,6 +30,10 @@ function App() {
       window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
     }
   }, [])
+
+  useEffect(() => {
+    runningRef.current = running
+  }, [running])
 
   const speak = (text) => {
     const utterance = new SpeechSynthesisUtterance(text)
@@ -101,6 +106,9 @@ function App() {
       }
     }
     recognition.onerror = (e) => console.error(e)
+    recognition.onend = () => {
+      if (runningRef.current) recognition.start()
+    }
     recognitionRef.current = recognition
     recognition.start()
   }
@@ -108,9 +116,11 @@ function App() {
   return (
     <div>
       <h1>Exercise Timer</h1>
-      <button onClick={startTimer} disabled={running}>Start Count</button>
-      <button onClick={startRecognition} disabled={running}>Start Exercise</button>
-      <button onClick={stopTimer} disabled={!running}>Stop</button>
+      <div className="start-buttons">
+        <button className="start-count" onClick={startTimer} disabled={running}>Start Count</button>
+        <button className="start-exercise" onClick={startRecognition} disabled={running}>Start Exercise</button>
+      </div>
+      <button className="stop-button" onClick={stopTimer} disabled={!running}>Stop</button>
       <div>Time: {seconds}s</div>
       <h2>History</h2>
       <ul>
