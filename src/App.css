@@ -10,6 +10,29 @@ button {
   font-size: 1rem;
 }
 
+.start-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.start-count {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.start-exercise {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.stop-button {
+  background-color: #f44336;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
 ul {
   list-style: none;
   padding: 0;
