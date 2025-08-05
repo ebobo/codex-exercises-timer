@@ -65,6 +65,7 @@ function App() {
 
   const startRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
     if (!SpeechRecognition) {
       alert('Speech recognition not supported in this browser')
       return
@@ -73,19 +74,28 @@ function App() {
     recognition.lang = 'en-US'
     recognition.continuous = true
     recognition.interimResults = false
+
+    // limit recognition to start/stop to avoid picking up spoken numbers
+    if (SpeechGrammarList) {
+      const grammar = '#JSGF V1.0; grammar commands; public <command> = start | stop ;'
+      const list = new SpeechGrammarList()
+      list.addFromString(grammar, 1)
+      recognition.grammars = list
+    }
+
     recognition.onresult = (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim().toLowerCase()
 
       // ignore digits that come from the spoken timer itself
       const numberWords = [
-        'zero','one','two','three','four','five','six','seven','eight','nine','ten'
+        'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'
       ]
       if (/^\d+$/.test(transcript) || numberWords.includes(transcript)) return
 
-      if (transcript.includes('start') && !running) {
+      if (transcript === 'start' && !running) {
         speak('Start')
         startTimer()
-      } else if (transcript.includes('stop') && running) {
+      } else if (transcript === 'stop' && running) {
         stopTimer()
         speak('Stop')
       }
@@ -98,6 +108,7 @@ function App() {
   return (
     <div>
       <h1>Exercise Timer</h1>
+      <button onClick={startTimer} disabled={running}>Start Count</button>
       <button onClick={startRecognition} disabled={running}>Start Exercise</button>
       <button onClick={stopTimer} disabled={!running}>Stop</button>
       <div>Time: {seconds}s</div>
