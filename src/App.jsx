@@ -43,8 +43,24 @@ function App() {
     window.speechSynthesis.speak(utterance)
   }
 
+  const playConfirmSound = () => {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext
+    const ctx = new AudioCtx()
+    const oscillator = ctx.createOscillator()
+    const gain = ctx.createGain()
+    oscillator.type = 'sine'
+    oscillator.frequency.value = 880
+    oscillator.connect(gain)
+    gain.connect(ctx.destination)
+    oscillator.start()
+    gain.gain.setValueAtTime(1, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+    oscillator.stop(ctx.currentTime + 0.2)
+  }
+
   const startTimer = () => {
     setRunning(true)
+    runningRef.current = true
     setSeconds(0)
     intervalRef.current = setInterval(() => {
       setSeconds((prev) => {
@@ -58,6 +74,7 @@ function App() {
   const stopTimer = () => {
     clearInterval(intervalRef.current)
     setRunning(false)
+    runningRef.current = false
     recognitionRef.current?.stop()
     window.speechSynthesis.cancel()
     const entry = { date: new Date().toLocaleString(), duration: seconds }
@@ -98,9 +115,11 @@ function App() {
       if (/^\d+$/.test(transcript) || numberWords.includes(transcript)) return
 
       if (transcript === 'start' && !running) {
+        playConfirmSound()
         speak('Start')
         startTimer()
       } else if (transcript === 'stop' && running) {
+        playConfirmSound()
         stopTimer()
         speak('Stop')
       }
